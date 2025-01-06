@@ -1,0 +1,5 @@
+acrome-smd
+flask
+flask_cors
+pyserial
+groq

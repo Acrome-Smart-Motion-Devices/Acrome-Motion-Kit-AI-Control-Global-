@@ -15,7 +15,7 @@ This document explains how to create a Groq Cloud API Key and provides informati
 
 ## Application Content
 
-To access the application details and documentation, click [here](https://github.com/kullaniciadi/proje-ismi).
+To access the application details and documentation, click [here]([https://github.com/kullaniciadi/proje-ismi](https://github.com/Acrome-Smart-Motion-Devices/Acrome-Motion-Kit-Control-Global/blob/main/Acrome%2BGlobal%20Motion%20Device%20Control%20.pdf)).
 
 ---
 

@@ -21,7 +21,7 @@ To access the application details and documentation, click [here](https://github
 
 ```bash
 sudo systemctl stop run_script.service
-'''
+```
 ---
 
 

@@ -22,6 +22,7 @@ To access the application details and documentation, click [here](https://github
 ```bash
 sudo systemctl stop run_script.service
 ```
+**Note:** If you want to stop the script from running automatically, you can use the following commands:
 ---
 
 

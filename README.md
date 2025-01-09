@@ -30,7 +30,7 @@ sudo systemctl stop run_script.service
 **Note:** If you want to start the script again, you should use these commands:
 ```bash
   sudo systemctl enable run_script.service
-  sudo systemctl enable start run_script.service
+  sudo systemctl start run_script.service
 ```
 ---
 

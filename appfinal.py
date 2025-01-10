@@ -13,28 +13,42 @@ import subprocess
 import sys
 import signal
 import logging
-
-# Configure logging
 logging.basicConfig(
     filename="app.log",  # File where logs will be saved
     level=logging.DEBUG,  # Capture all levels of logs, including errors
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
+func_call=None
 APIKEY = None
 API_KEY_FILE = "api_key.txt"
 def USB_Port():
-    ports = list(comports())
-    usb_names = {
-        "Windows": ["USB Serial Port"],
-        "Linux": ["/dev/ttyUSB"],
-        "Darwin": ["/dev/tty.usbserial", "/dev/tty.usbmodem"]
-    }
-    os_name = system()
-    for port, desc, hwid in sorted(ports):
-        if any(name in port or name in desc for name in usb_names.get(os_name, [])):
-            return port
-    return None
+	ports = list(comports())
+	usb_names = {
+		"Windows": ["USB Serial Port"],
+		"Linux": ["/dev/ttyUSB"],
+		"Darwin": [
+			"/dev/tty.usbserial",
+			"/dev/tty.usbmodem",
+			"/dev/tty.SLAB_USBtoUART",
+			"/dev/tty.wchusbserial",
+			"/dev/cu.usbserial",
+            		"/dev/cu.usbmodem",
+			"/dev/cu.SLAB_USBtoUART",
+			"/dev/cu.wchusbserial",
+		]
+	}
+	
+	os_name = system()
+	if ports:
+		for port, desc, hwid in sorted(ports):
+			if any(name in port or name in desc for name in usb_names.get(os_name, [])):
+				return port
+		print("Current ports:")
+		for port, desc, hwid in ports:
+			print(f"Port: {port}, Description: {desc}, Hardware ID: {hwid}")
+	else:
+		print("No port found")
+	return None
 def get_groq_client():
     if not APIKEY:
         raise ValueError("API Key is missing!")
@@ -49,17 +63,37 @@ def load_api_key():
     if os.path.exists(API_KEY_FILE):
         with open(API_KEY_FILE, "r") as file:
             APIKEY = file.read().strip()
+
 def connect_wifi(ssid, password):
     try:
-        print(f"Connecting to Wi-Fi SSID: {ssid}")
-        subprocess.run("sudo nmcli device wifi list",shell=True,check=True)
-        command = f"sudo nmcli device wifi connect \"{ssid}\" password {password}"
-        subprocess.run(command, shell=True, check=True)
+        first_check=subprocess.run("nmcli connection show --active", shell=True, capture_output=True, text=True)
+        if "preconfigured" in first_check.stdout:
+            subprocess.run("sudo nmcli connection down preconfigured", shell=True, check=True)
+        print(f"Updating preconfigured connection with SSID: {ssid}")
+        subprocess.run(f"sudo nmcli connection modify preconfigured 802-11-wireless.ssid \"{ssid}\"", shell=True, check=True)
+        subprocess.run(f"sudo nmcli connection modify preconfigured 802-11-wireless-security.psk \"{password}\"", shell=True, check=True)
         
-        return True
+        print("Activating preconfigured connection...")
+
+        subprocess.run("sudo nmcli connection up preconfigured", shell=True, check=True)
+        
+        print("Checking connection status...")
+        time.sleep(5)  
+        result = subprocess.run("nmcli connection show --active", shell=True, capture_output=True, text=True)
+        
+        if "preconfigured" in result.stdout:
+            print(f"Successfully connected to Wi-Fi SSID: {ssid}")
+            return True
+        
+        else:
+            print("Failed to connect to Wi-Fi, switching to Hotspot...")
+            subprocess.run("sudo nmcli connection up Hotspot", shell=True, check=True)
+            return False
+
     except subprocess.CalledProcessError as e:
-        print(f"Hata: {e}")
+        print(f"Error: {e}")
         return False
+
 
 
 
@@ -86,6 +120,9 @@ Available functions:
     - Parameters: degree (int) - Degree to turn, rotation_speed (int)\n
 5. radial_movement - Moves the robot along a circular path with a given radius and angle.\n
     - Parameters: radius (int), degree (int)\n
+6. distance_movement -If you encounter an obstacle while moving straight ahead, let it follow the other function. Eg: For example, turn right function when approaching 20 cm\n
+    - Parameters: cm(int)\n
+7. stop - Stop the robot. No parameters.
 NOTE: The first function have to be `init_robot`. Other functions will come after init_robot function.\n
 NOTE: Understand the prompt given by the user\n
 
@@ -351,7 +388,19 @@ class RobotController:
         self.angle %= 360  
 
         return self.x, self.y, self.angle
-
+    def distance_movement(self,cm):
+        self.m.set_velocity(0,-30)
+        self.m.set_velocity(1,30)
+        while True:
+            a= self.m.get_distance(1,5)
+            print(a)
+            if (a<cm) and a>0.5:
+                self.m.set_velocity(0,0)
+                self.m.set_velocity(1,0)
+                break
+    def stop(self):
+        self.m.set_velocity(0,0)
+        self.m.set_velocity(1,0)
 robot_controller = RobotController(wheel_radius=3.75, robot_width=28)
 
 # Flask App Setup
@@ -413,6 +462,7 @@ def process_text():
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
 def execute_function(response):
+    global func_call
     for func_call in response:
         function = func_call.get("function")
         parameters = func_call.get("parameters", {})
@@ -430,6 +480,8 @@ def execute_function(response):
                 robot_controller.turn_right(parameters.get("degree", 0), parameters.get("rotation_speed", 20))
             elif function == "radial_movement":
                 robot_controller.radial_movement(parameters.get("radius", 0), parameters.get("degree", 0))
+            elif function=="distance_movement":
+                robot_controller.distance_movement(parameters.get("cm",0))
             elif function=="stop":
                 robot_controller.stop()
             else:

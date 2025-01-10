@@ -288,10 +288,10 @@ class RobotController:
         """Robotun saat yönünde (sağa) dönüşü pozisyon tabanlı kontrol ile."""
         if rotation_speed > 100:
             print("Rotation speed cannot exceed 100.")
-            rotation_speed = 40
+            rotation_speed = 30
         if rotation_speed < -100:
             print("Rotation speed cannot be less than -100.")
-            rotation_speed = -40
+            rotation_speed = -30
     
         print("Adjusted rotation speed:", rotation_speed)
     

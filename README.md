@@ -11,7 +11,7 @@ This document explains how to create a Groq Cloud API Key and provides informati
 5. Provide a name for the API Key. (You can choose any name you like.)
 6. Make sure to **save your API Key**, as it will only be displayed once. If you lose it, you will need to create a new API Key.
 
-> **Note:** Don’t forget to back up your API Key! If it gets lost, you won’t be able to retrieve the same key again.
+> **Note:** Don’t forget to back up your API Key! If it gets lost, you won’t be able to retrieve the same key again. Also your raspberry pi has to connect to Network.
 
 ## Application Content
 

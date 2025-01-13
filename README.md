@@ -17,22 +17,6 @@ This document explains how to create a Groq Cloud API Key and provides informati
 
 To access the application details and documentation, click [here](https://github.com/Acrome-Smart-Motion-Devices/Acrome-Motion-Kit-Control-Global/blob/main/Acrome%2BGlobal%20Motion%20Device%20Control%20.pdf).
 
-**Note:** If you want to stop the script from running, you can use the following command:  
-
-```bash
-sudo systemctl stop run_script.service
-```
-**Note:** If you want to stop the script from running automatically, you can use the following commands:
-```bash
-  sudo systemctl stop run_script.service
-  sudo systemctl disable run_script.service
-```
-**Note:** If you want to start the script again, you should use these commands:
-```bash
-  sudo systemctl enable run_script.service
-  sudo systemctl start run_script.service
-```
----
 
 
 If you encounter any issues, please feel free to contact us!
